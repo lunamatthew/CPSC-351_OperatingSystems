@@ -45,8 +45,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	int infd = open(argv[1], O_RDONLY); // O_RDONLY ?
-	
+	int infd = open(argv[1], O_RDONLY);
 	if(infd < 0)
 	{
 		perror("open");
@@ -76,6 +75,7 @@ int main(int argc, char** argv)
 		perror("mmap");
 		exit(1);
 	}
+	//int outfd = open(sharedMemPtr
 
 	int i = -1;
 	while(bytesRead != 0) {
@@ -87,6 +87,7 @@ int main(int argc, char** argv)
 		else if (bytesRead != 0) {
 			++i;
 			strncpy((char*)sharedMemPtr + (MAX_READ_SIZE * i), charBuff, bytesRead);
+			//bytesWritten = write(
 
 			if (bytesWritten < 0) {
 				perror("write");
@@ -95,11 +96,17 @@ int main(int argc, char** argv)
 		}
 	}
 
-	close(infd);
+	int tmpFileOp = 0;
+	tmpFileOp = close(infd);
+	if (tmpFileOp < 0) {
+		perror("close");
+		exit(1);
+	}
 	int pid = atoi(argv[2]);
 	int retVal = kill(pid, SIGUSR1);
 	if (retVal < 0) {
-		perror("Kill failed");
+		perror("Kill");
+		exit(1);
 	}
 	
 	return 0;

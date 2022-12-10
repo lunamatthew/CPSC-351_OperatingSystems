@@ -58,10 +58,23 @@ void recvFile(int signNum)
 		perror("mmap");
 		exit(1);
 	}
-
-	write(fd, (char*)sharedMemPtr, memSize);
-	close(fd);
-	shm_unlink(SHARED_MEM_NAME);
+	
+	int tmpFileOps = 0;
+	tmpFileOps = write(fd, (char*)sharedMemPtr, memSize);
+	if (tmpFileOps < 0) {
+		perror("write");
+		exit(1);
+	}
+	tmpFileOps = close(fd);
+	if (tmpFileOps < 0) {
+		perror("close");
+		exit(1);
+	}
+	tmpFileOps = shm_unlink(SHARED_MEM_NAME);
+	if (tmpFileOps < 0) {
+		perror("shm_unlink");
+		exit(1);
+	}
 	terminate = true;
 }
 
