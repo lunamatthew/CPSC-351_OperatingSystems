@@ -97,8 +97,8 @@ int main(int argc, char** argv)
 	// Keep writing until all data has been written
 	//fprintf(stderr, "\nqueue msg size: %d\n", (int)attr.mq_msgsize);
 	//fprintf(stderr, "size: %d\n", fileSize);
-	//while((totalBytesRead < fileSize) && !finishedReading)
-	while(!finishedReading)
+	while((totalBytesRead < fileSize) && !finishedReading)
+	//while(!finishedReading)
 	{
 		// Read from file to the shared memory
 		bytesRead = read(fd, buff, 4096);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 		}
 
 		else if (bytesRead > 0) {
-			retVal = mq_send(myQueue, buff, 4096, 1);
+			retVal = mq_send(myQueue, buff, bytesRead, 1);
 			if (retVal < 0) {
 				perror("mq_send");
 				exit(1);
@@ -121,8 +121,7 @@ int main(int argc, char** argv)
 		// We are at the end of file
 		else if (bytesRead == 0)
 		{
-	//		fprintf(stderr, "TEST!!!!\n\n");
-	//		fprintf(stderr, "\nLast in buffer: %c%c%c%c%c\n", buff[4090],buff[4091],buff[4092],buff[4093],buff[4094]);
+			fprintf(stderr, "TEST!!!!%d\n\n", bytesRead);
 			// We are at the end of file
 			finishedReading = true;		
 		}
@@ -135,6 +134,10 @@ int main(int argc, char** argv)
 	// to the receiver to tell it that the
 	// transmission is done
 
+	mq_getattr(myQueue, &attr);
+	while (attr.mq_curmsgs != 0) {
+		mq_getattr(myQueue, &attr);
+	}
 	retVal = mq_send(myQueue, buff, 0, 2);
 	if (retVal < 0) {
 		perror("mq_send");

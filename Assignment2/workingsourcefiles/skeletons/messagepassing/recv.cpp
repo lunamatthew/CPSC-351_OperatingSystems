@@ -30,7 +30,7 @@ void recvFile()
 	// messages with the maximum message
 	// size being 4096 bytes
 	mqd_t myQueue;
-	
+	unsigned int prio = 0;	
 	mq_attr attr;
 	attr.mq_maxmsg = 10;	// possibly not necessary?
 	attr.mq_msgsize = MQ_MSGSIZE; // possibly not necessary?
@@ -95,15 +95,15 @@ void recvFile()
 		// Please see the sender's code for the
 		// corresponding logic
 		++i;
-		msqBytesRecv = mq_receive(myQueue, buff, 8192, NULL);
-		//printf("Bytes received: %d Iterations: %d\n", (int)msqBytesRecv, i);
+		msqBytesRecv = mq_receive(myQueue, buff, 8192, &prio);
+		printf("Bytes received: %d Iterations: %d\n Priority: %d ", (int)msqBytesRecv, i, prio);
 		if (msqBytesRecv < 0) {
 			perror("mq_receive");
 			exit(-1);
 		}
 		if (msqBytesRecv > 0) {
 			//tmpFileOps = write(fd, buff, msqBytesRecv);
-			tmpFileOps = write(fd, buff, 4096);
+			tmpFileOps = write(fd, buff, msqBytesRecv);
 		}
 	}
 	tmpFileOps = close(fd);
