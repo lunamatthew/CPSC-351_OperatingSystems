@@ -20,16 +20,17 @@ struct node {
 
 // This global root node will act as the head (root) of the binary search tree
 node *root = NULL;
-// mutex1 will be the semaphore to protect the critical section of the code from race conditions
+// mutex1 will be the pthread_mutex to protect the critical section of the code from race conditions
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 void* generateNumInsert(void* param) {
 	int randNum = 0;
-	printf("ENTERING generateNumInsert()!\n");
 	for (int i = 0; i < 100; ++i) {
 		randNum = rand() % 100000 + 0;
 
 		node* tempInsert = new node;
+		tempInsert->right = NULL;
+		tempInsert->left = NULL;
 		tempInsert->key = randNum;
 	
 
@@ -37,36 +38,40 @@ void* generateNumInsert(void* param) {
 
 		if (root == NULL) {
 			root = tempInsert;
-		} 
-		else 
+		}
+		else
 		{
 			node* tempCheck = root;
-			while (tempCheck != NULL) {
-				if (tempCheck->key < tempInsert->key) {// insert val is greater
+			
+			while (true) {
+				if (tempCheck->key < tempInsert->key) {
 					if (tempCheck->right == NULL) {
 						tempCheck->right = tempInsert;
 						break;
-						//continue;
-					} 
-					else 
+					}
+					else
+					{
 						tempCheck = tempCheck->right;
+						continue;
+					}
 				}
-				else if (tempCheck->key > tempInsert->key) {// insert val is less
+			        else if (tempCheck->key > tempInsert->key) {
 					if (tempCheck->left == NULL) {
 						tempCheck->left = tempInsert;
 						break;
-						//continue;
-					} 
+					}
 					else
+					{
 						tempCheck = tempCheck->left;
-				}
-				else {// if insert value is duplicate
-				      	printf("DUPLICATE!\n");
+						continue;
+					}
+				}	
+				else
+				{
+					delete tempInsert;
 					break;
-					//continue;
 				}
 			}
-			//pthread_mutex_unlock(&mutex1);
 		}
 		pthread_mutex_unlock(&mutex1);
 	}
@@ -77,9 +82,17 @@ void* generateNumInsert(void* param) {
 void printBinaryTree(node* bNode) {
 	if (bNode == NULL)
 		return;
-	printBinaryTree(bNode->right);
-	fprintf(stderr, "%d\n", bNode->key);
 	printBinaryTree(bNode->left);
+	fprintf(stderr, "%d\n", bNode->key);
+	printBinaryTree(bNode->right);
+}
+
+void destroyBinaryTree(node* bNode) {
+	if (bNode == NULL)
+		return;
+	destroyBinaryTree(bNode->right);
+	destroyBinaryTree(bNode->left);
+	delete bNode;
 }
 
 int main(int argc, char** argv) {
@@ -108,9 +121,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	//printBinaryTree(root);
+	printBinaryTree(root);
 
-	// we also need to destroy any dynamically allocated memory here before termination
+	destroyBinaryTree(root);
 
 	return 0;
 }
